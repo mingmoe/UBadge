@@ -1,0 +1,48 @@
+# 勋章日涅夫的CI/CD
+name: Update Badge
+
+# 测试完成则触发
+on:
+  workflow_run:
+    #====================修改此处==========================
+    #            ↓ 你想要触发的工作流名称
+    workflows: []
+    #======================================================
+    types: [completed]
+    
+permissions: write-all
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    
+    # 获取事件参数
+    env:
+      pte_check_suite_url: ${{ github.event.workflow_run.check_suite_url }}
+
+      #====================修改此处==========================
+      # 填写你自己的参数
+      target_file_path: "你的README.md文件路径"
+      #======================================================
+
+      # 你可以自行修改下列参数
+      # 用于决定ubadge的更新范围
+      list_begin: "<!---ubadge-auto-list-begin-->"
+      list_end: "<!---ubadge-auto-list-end-->"
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: update README.md
+        run: python3 ubadge.py ${pte_check_suite_url} ${target_file_path} ${list_begin} ${list_end}
+
+      - name: push to github
+        #====================修改此处==========================
+        #            ↓填写你的git账户名称和邮箱地址
+        #======================================================
+        run: |
+          git config --global user.name '你的git用户名'
+          git config --global user.email '你的git邮箱地址'
+          git add README.md
+          git commit -m "Update badges of README.md"
+          git push
